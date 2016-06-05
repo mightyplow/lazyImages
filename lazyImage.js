@@ -91,21 +91,19 @@
 
     function getMutationElements(mutations, selector) {
         return mutations.reduce(function (acc, item) {
-            if (item.addedNodes) {
-                var nodes = toArray(item.addedNodes)
+            var nodes = toArray(item.addedNodes || [])
 
-                nodes.forEach(function (node) {
-                    if (node instanceof HTMLElement) {
-                        if (node.matches(selector)) {
-                            acc.add(node)
-                        }
-
-                        node.querySelectorAll(selector).forEach(function (node) {
-                            acc.add(node)
-                        })
+            nodes.forEach(function (node) {
+                if (node instanceof HTMLElement) {
+                    if (node.matches(selector)) {
+                        acc.add(node)
                     }
-                })
-            }
+
+                    node.querySelectorAll(selector).forEach(function (node) {
+                        acc.add(node)
+                    })
+                }
+            })
 
             return acc
         }, new Set())
