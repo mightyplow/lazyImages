@@ -1,7 +1,7 @@
-(function (window) {
-    var MutationObserver = ('MutationObserver' in window) && window.MutationObserver,
-        IntersectionObserver = ('IntersectionObserver' in window) && window.IntersectionObserver,
-        Set = ('Set' in window) && window.Set
+(function (window, Object) {
+    var MutationObserver = window['MutationObserver'],
+        IntersectionObserver = window['IntersectionObserver'],
+        Set = window['Set']
 
     if (!(MutationObserver && IntersectionObserver && Set)) {
         return
@@ -15,59 +15,73 @@
 
     var mutationObserverOptions = {
         childList: true,
-        subtree: true,
-        attributeFilter: ['src', 'srcset']
+        subtree: true
     }
 
     function toArray (arraylike) {
         return Array.prototype.slice.call(arraylike)
     }
 
-    var lazyImage = (function () {
-        var sourceAttribute = 'src'
+    function moveAttribute (elem, oldAttribute, newAttribute) {
+        elem.setAttribute(newAttribute, elem.getAttribute(oldAttribute))
+        elem.removeAttribute(oldAttribute)
+    }
 
-        return {
-            storeSource: function (elem) {
-                elem.setAttribute(lazySrcAttribute, elem.getAttribute(sourceAttribute))
-                elem.removeAttribute(sourceAttribute)
-            },
+    function abstractMethod () {
+        throw "Must be implemented"
+    }
 
-            restoreSource: function (elem) {
-                elem.setAttribute(sourceAttribute, elem.getAttribute(lazySrcAttribute))
-                elem.removeAttribute(lazySrcAttribute)
-            },
+    var lazyElement = {
+        getSourceAttribute: abstractMethod,
 
-            hasSource: function (elem) {
-                return !!elem.getAttribute(sourceAttribute)
+        getSourceElements: abstractMethod,
+
+        storeSource: function (elem) {
+            this.getSourceElements(elem).forEach(function (source) {
+                moveAttribute(source, this.getSourceAttribute(), lazySrcAttribute)
+            }.bind(this))
+        },
+
+        restoreSource: function (elem) {
+            this.getSourceElements(elem).forEach(function (source) {
+                moveAttribute(source, lazySrcAttribute, this.getSourceAttribute())
+            }.bind(this))
+        },
+
+        hasSource: function (elem) {
+            return this.getSourceElements(elem).every(function (source) {
+                return !!source.getAttribute(this.getSourceAttribute())
+            }.bind(this))
+        }
+    }
+
+    var lazyImage = Object.create(lazyElement, {
+        getSourceAttribute: {
+            value: function () {
+                return 'src'
+            }
+        },
+
+        getSourceElements: {
+            value: function (elem) {
+                return [elem]
             }
         }
-    }())
+    })
 
-    var lazyPicture = (function () {
-        var sourceAttribute = 'srcset'
+    var lazyPicture = Object.create(lazyElement, {
+        getSourceAttribute: {
+            value: function () {
+                return 'srcset'
+            }
+        },
 
-        return {
-            storeSource: function (elem) {
-                elem.querySelectorAll('source').forEach(function (source) {
-                    source.setAttribute(lazySrcAttribute, source.getAttribute(sourceAttribute))
-                    source.removeAttribute(sourceAttribute)
-                })
-            },
-
-            restoreSource: function (elem) {
-                elem.querySelectorAll('source').forEach(function (source) {
-                    source.setAttribute(sourceAttribute, source.getAttribute(lazySrcAttribute))
-                    source.removeAttribute(lazySrcAttribute)
-                })
-            },
-
-            hasSource: function (elem) {
-                return toArray(elem.querySelectorAll('source')).every(function (source) {
-                    return !!source.getAttribute(sourceAttribute)
-                })
+        getSourceElements: {
+            value: function (elem) {
+                return toArray(elem.querySelectorAll('source'))
             }
         }
-    }())
+    })
 
     function getImageHelper (elem) {
         if (elem instanceof HTMLImageElement) {
@@ -125,4 +139,4 @@
     })
 
     mutationObserver.observe(document, mutationObserverOptions)
-}(window))
+}(window, Object))
