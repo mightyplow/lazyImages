@@ -1,0 +1,3 @@
+{
+  "props": ["childList", "subtree", "threshold", "value"]
+}
