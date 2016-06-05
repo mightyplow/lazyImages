@@ -126,5 +126,5 @@
         })
     })
 
-    mutationObserver.observe(document.body, mutationObserverOptions)
+    mutationObserver.observe(document, mutationObserverOptions)
 }(window))
