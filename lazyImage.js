@@ -117,7 +117,7 @@
         images.forEach(function (image) {
             var imageHelper = getImageHelper(image)
 
-            if (imageHelper.hasSource(image)) {
+            if (imageHelper && imageHelper.hasSource(image)) {
                 imageHelper.storeSource(image)
                 intersectionObserver.observe(image)
             }
