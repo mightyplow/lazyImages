@@ -7,7 +7,7 @@
         return
     }
 
-    var lazySrcAttribute = 'data-src'
+    var lazySrcPrefix = 'data-'
 
     var intersectionObserverOptions = {
         threshold: 0
@@ -36,15 +36,19 @@
 
         getSourceElements: abstractMethod,
 
+        getLazySourceAttribute: function () {
+            return lazySrcPrefix + this.getSourceAttribute();
+        },
+
         storeSource: function (elem) {
             this.getSourceElements(elem).forEach(function (source) {
-                moveAttribute(source, this.getSourceAttribute(), lazySrcAttribute)
+                moveAttribute(source, this.getSourceAttribute(), this.getLazySourceAttribute())
             }.bind(this))
         },
 
         restoreSource: function (elem) {
             this.getSourceElements(elem).forEach(function (source) {
-                moveAttribute(source, lazySrcAttribute, this.getSourceAttribute())
+                moveAttribute(source, this.getLazySourceAttribute(), this.getSourceAttribute())
             }.bind(this))
         },
 
