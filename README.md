@@ -1,8 +1,9 @@
 # lazyImages
 JavaScript snippet to let images and pictures be loaded lazily
 
-The snippet uses the new IntersectionObserver (since Chrome 51) and the [MutationObserver](http://caniuse.com/#feat=mutationobserver) 
-to let img and picture elements be loaded when they get visible.
+The snippet uses the new [IntersectionObserver](https://github.com/WICG/IntersectionObserver/blob/gh-pages/explainer.md) 
+(since Chrome 51) and the [MutationObserver](http://caniuse.com/#feat=mutationobserver) to let img and picture elements 
+be loaded when they get visible.
 
 If one of the observers is not available, the images get loaded normally.
 
