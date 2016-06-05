@@ -4,10 +4,10 @@
         Set = ('Set' in window) && window.Set
 
     if (!(MutationObserver && IntersectionObserver && Set)) {
-        return;
+        return
     }
 
-    var lazySrcAttribute = 'data-src';
+    var lazySrcAttribute = 'data-src'
 
     var intersectionObserverOptions = {
         threshold: 0
@@ -20,7 +20,7 @@
     }
 
     function toArray (arraylike) {
-        return Array.prototype.slice.call(arraylike);
+        return Array.prototype.slice.call(arraylike)
     }
 
     var lazyImage = (function () {
@@ -76,7 +76,7 @@
             return lazyPicture
         }
 
-        return null;
+        return null
     }
 
     function onGetVisible (items) {
@@ -102,9 +102,9 @@
 
                         node.querySelectorAll(selector).forEach(function (node) {
                             acc.add(node)
-                        });
+                        })
                     }
-                });
+                })
             }
 
             return acc
