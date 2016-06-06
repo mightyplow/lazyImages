@@ -26,67 +26,54 @@
         elem.setAttribute(newAttribute, elem.getAttribute(oldAttribute))
         elem.removeAttribute(oldAttribute)
     }
-
-    function abstractMethod () {
-        throw "Must be implemented"
+    
+    function extend (base, extension) {
+        var extended = Object.create(base)
+        return Object.assign(extended, extension)
     }
 
+    // sourceAttribute gets set in the extending class
+    // getSourceElements gets implemented in the extend class
     var lazyElement = {
-        getSourceAttribute: abstractMethod,
-
-        getSourceElements: abstractMethod,
-
         getLazySourceAttribute: function () {
-            return lazySrcPrefix + this.getSourceAttribute();
+            return lazySrcPrefix + this.sourceAttribute
         },
 
         storeSource: function (elem) {
             this.getSourceElements(elem).forEach(function (source) {
-                moveAttribute(source, this.getSourceAttribute(), this.getLazySourceAttribute())
+                moveAttribute(source, this.sourceAttribute, this.getLazySourceAttribute())
             }.bind(this))
         },
 
         restoreSource: function (elem) {
             this.getSourceElements(elem).forEach(function (source) {
-                moveAttribute(source, this.getLazySourceAttribute(), this.getSourceAttribute())
+                moveAttribute(source, this.getLazySourceAttribute(), this.sourceAttribute)
             }.bind(this))
         },
 
         hasSource: function (elem) {
             return this.getSourceElements(elem).every(function (source) {
-                return !!source.getAttribute(this.getSourceAttribute())
+                return !!source.getAttribute(this.sourceAttribute)
             }.bind(this))
         }
     }
 
-    var lazyImage = Object.create(lazyElement, {
-        getSourceAttribute: {
-            value: function () {
-                return 'src'
-            }
-        },
+    var lazyImage = extend(lazyElement, {
+        sourceAttribute: 'src',
 
-        getSourceElements: {
-            value: function (elem) {
-                return [elem]
-            }
+        getSourceElements: function (elem) {
+            return [elem]
         }
     })
 
-    var lazyPicture = Object.create(lazyElement, {
-        getSourceAttribute: {
-            value: function () {
-                return 'srcset'
-            }
-        },
+    var lazyPicture = extend(lazyElement, {
+        sourceAttribute: 'srcset',
 
-        getSourceElements: {
-            value: function (elem) {
-                return toArray(elem.querySelectorAll('source'))
-            }
+        getSourceElements: function (elem) {
+            return toArray(elem.querySelectorAll('source'))
         }
     })
-
+    
     function getImageHelper (elem) {
         if (elem instanceof HTMLImageElement) {
             return lazyImage
@@ -130,6 +117,7 @@
     var intersectionObserver = new IntersectionObserver(onGetVisible, intersectionObserverOptions)
 
     var mutationObserver = new MutationObserver(function (mutations) {
+        console.time("mutations")
         var images = getMutationElements(mutations, 'img, picture')
 
         images.forEach(function (image) {
@@ -140,6 +128,7 @@
                 intersectionObserver.observe(image)
             }
         })
+        console.timeEnd("mutations")
     })
 
     mutationObserver.observe(document, mutationObserverOptions)
