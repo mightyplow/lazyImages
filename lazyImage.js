@@ -19,7 +19,7 @@
     }
 
     function toArray (arraylike) {
-        return Array.prototype.slice.call(arraylike)
+        return arraylike && Array.prototype.slice.call(arraylike) || []
     }
 
     function moveAttribute (elem, oldAttribute, newAttribute) {
@@ -27,26 +27,25 @@
         elem.removeAttribute(oldAttribute)
     }
     
-    function extend (base, extension) {
-        var extended = Object.create(base)
-        return Object.assign(extended, extension)
+    function forEach (iteratable, fn) {
+        iteratable.forEach(fn)
     }
 
     // sourceAttribute gets set in the extending class
-    // getSourceElements gets implemented in the extend class
+    // getSourceElements gets implemented in the extending class
     var lazyElement = {
         getLazySourceAttribute: function () {
             return lazySrcPrefix + this.sourceAttribute
         },
 
         storeSource: function (elem) {
-            this.getSourceElements(elem).forEach(function (source) {
+            forEach(this.getSourceElements(elem), function (source) {
                 moveAttribute(source, this.sourceAttribute, this.getLazySourceAttribute())
             }.bind(this))
         },
 
         restoreSource: function (elem) {
-            this.getSourceElements(elem).forEach(function (source) {
+            forEach(this.getSourceElements(elem), function (source) {
                 moveAttribute(source, this.getLazySourceAttribute(), this.sourceAttribute)
             }.bind(this))
         },
@@ -58,7 +57,7 @@
         }
     }
 
-    var lazyImage = extend(lazyElement, {
+    var lazyImage = Object.assign({}, lazyElement, {
         sourceAttribute: 'src',
 
         getSourceElements: function (elem) {
@@ -66,14 +65,14 @@
         }
     })
 
-    var lazyPicture = extend(lazyElement, {
+    var lazyPicture = Object.assign({}, lazyElement, {
         sourceAttribute: 'srcset',
 
         getSourceElements: function (elem) {
             return toArray(elem.querySelectorAll('source'))
         }
     })
-    
+
     function getImageHelper (elem) {
         if (elem instanceof HTMLImageElement) {
             return lazyImage
@@ -83,9 +82,9 @@
 
         return null
     }
-
+    
     function onGetVisible (items) {
-        items.forEach(function (item) {
+        forEach(items, function (item) {
             var target = item.target,
                 imageHelper = getImageHelper(target)
 
@@ -98,15 +97,13 @@
         return mutations.reduce(function (acc, item) {
             var nodes = toArray(item.addedNodes || [])
 
-            nodes.forEach(function (node) {
-                if (node instanceof HTMLElement) {
+            forEach(nodes, function (node) {
+                if (node.matches) {
                     if (node.matches(selector)) {
                         acc.add(node)
                     }
 
-                    node.querySelectorAll(selector).forEach(function (node) {
-                        acc.add(node)
-                    })
+                    forEach(node.querySelectorAll(selector), acc.add.bind(acc))
                 }
             })
 
@@ -120,7 +117,7 @@
         console.time("mutations")
         var images = getMutationElements(mutations, 'img, picture')
 
-        images.forEach(function (image) {
+        forEach(images, function (image) {
             var imageHelper = getImageHelper(image)
 
             if (imageHelper && imageHelper.hasSource(image)) {
