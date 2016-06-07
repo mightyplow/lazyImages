@@ -1,5 +1,6 @@
 # lazyImages
-JavaScript snippet to let images and pictures be loaded lazily
+A tiny JavaScript snippet to let images and pictures be loaded lazily (when they get visible). It's less then 650B when 
+transferred gzipped.
 
 The snippet uses the new [IntersectionObserver](https://github.com/WICG/IntersectionObserver/blob/gh-pages/explainer.md) 
 (since Chrome 51) and the [MutationObserver](http://caniuse.com/#feat=mutationobserver) to let img and picture elements 
