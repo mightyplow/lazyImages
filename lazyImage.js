@@ -38,16 +38,18 @@
             return lazySrcPrefix + this.sourceAttribute
         },
 
-        storeSource: function (elem) {
+        moveSourceAttributes: function (elem, sourceAttribute, targetAttribute) {
             forEach(this.getSourceElements(elem), function (source) {
-                moveAttribute(source, this.sourceAttribute, this.getLazySourceAttribute())
-            }.bind(this))
+                moveAttribute(source, sourceAttribute, targetAttribute)
+            })
+        },
+        
+        storeSource: function (elem) {
+            this.moveSourceAttributes(elem, this.sourceAttribute, this.getLazySourceAttribute())
         },
 
         restoreSource: function (elem) {
-            forEach(this.getSourceElements(elem), function (source) {
-                moveAttribute(source, this.getLazySourceAttribute(), this.sourceAttribute)
-            }.bind(this))
+            this.moveSourceAttributes(elem, this.getLazySourceAttribute(), this.sourceAttribute)
         },
 
         hasSource: function (elem) {
