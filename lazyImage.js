@@ -1,4 +1,4 @@
-(function (window, Object) {
+(function (window, Object, undefined) {
     var MutationObserver = window['MutationObserver'],
         IntersectionObserver = window['IntersectionObserver'],
         Set = window['Set']
@@ -7,7 +7,7 @@
         return
     }
 
-    var lazySrcPrefix = 'data-'
+    var lazySrcPrefix = 'data-lazy-'
 
     var intersectionObserverOptions = {
         threshold: 0
@@ -22,61 +22,48 @@
         return arraylike && Array.prototype.slice.call(arraylike) || []
     }
 
-    function moveAttribute (elem, oldAttribute, newAttribute) {
-        elem.setAttribute(newAttribute, elem.getAttribute(oldAttribute))
-        elem.removeAttribute(oldAttribute)
-    }
-    
     function forEach (iteratable, fn) {
         iteratable.forEach(fn)
     }
 
-    // sourceAttribute gets set in the extending class
-    // getSourceElements gets implemented in the extending class
-    var lazyElement = {
-        getLazySourceAttribute: function () {
-            return lazySrcPrefix + this.sourceAttribute
-        },
-
-        moveSourceAttributes: function (elem, sourceAttribute, targetAttribute) {
-            forEach(this.getSourceElements(elem), function (source) {
-                moveAttribute(source, sourceAttribute, targetAttribute)
+    function createAttributeMoveFunction (sourceGetter, sourceAttribute, targetAttribute) {
+        return function () {
+            forEach(sourceGetter(), function (source) {
+                source.setAttribute(targetAttribute, source.getAttribute(sourceAttribute))
+                source.removeAttribute(sourceAttribute)
             })
-        },
-        
-        storeSource: function (elem) {
-            this.moveSourceAttributes(elem, this.sourceAttribute, this.getLazySourceAttribute())
-        },
-
-        restoreSource: function (elem) {
-            this.moveSourceAttributes(elem, this.getLazySourceAttribute(), this.sourceAttribute)
         }
     }
 
-    var lazyImage = Object.assign({}, lazyElement, {
-        sourceAttribute: 'src',
+    function getImageSources () {
+        return [this]
+    }
 
-        getSourceElements: function (elem) {
-            return [elem]
-        }
-    })
-
-    var lazyPicture = Object.assign({}, lazyElement, {
-        sourceAttribute: 'srcset',
-
-        getSourceElements: function (elem) {
-            return toArray(elem.querySelectorAll('source'))
-        }
-    })
+    function getPictureSources () {
+        return toArray(this.querySelectorAll('source'))
+    }
 
     function getImageHelper (elem) {
+        var sourceAttribute,
+            backupAttribute,
+            sourceGetter
+
         if (elem instanceof HTMLImageElement) {
-            return lazyImage
+            sourceAttribute = 'src'
+            sourceGetter = getImageSources.bind(elem)
         } else if (elem instanceof HTMLPictureElement) {
-            return lazyPicture
+            sourceAttribute = 'srcset'
+            sourceGetter = getPictureSources.bind(elem)
+        } else {
+            return
         }
 
-        return null
+        backupAttribute = lazySrcPrefix + sourceAttribute
+
+        return {
+            storeSource: createAttributeMoveFunction(sourceGetter, sourceAttribute, backupAttribute),
+            restoreSource: createAttributeMoveFunction(sourceGetter, backupAttribute, sourceAttribute)
+        }
     }
     
     function onGetVisible (items) {
@@ -91,7 +78,7 @@
 
     function getMutationElements(mutations, selector) {
         return mutations.reduce(function (acc, item) {
-            var nodes = toArray(item.addedNodes || [])
+            var nodes = toArray(item.addedNodes)
 
             forEach(nodes, function (node) {
                 if (node.matches) {
