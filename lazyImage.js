@@ -50,12 +50,6 @@
 
         restoreSource: function (elem) {
             this.moveSourceAttributes(elem, this.getLazySourceAttribute(), this.sourceAttribute)
-        },
-
-        hasSource: function (elem) {
-            return this.getSourceElements(elem).every(function (source) {
-                return !!source.getAttribute(this.sourceAttribute)
-            }.bind(this))
         }
     }
 
@@ -122,7 +116,7 @@
         forEach(images, function (image) {
             var imageHelper = getImageHelper(image)
 
-            if (imageHelper && imageHelper.hasSource(image)) {
+            if (imageHelper) {
                 imageHelper.storeSource(image)
                 intersectionObserver.observe(image)
             }
