@@ -7,7 +7,7 @@
         return
     }
 
-    var lazySrcPrefix = 'data-lazy-'
+    var lazySrcPrefix = 'data-'
 
     var intersectionObserverOptions = {
         threshold: 0
