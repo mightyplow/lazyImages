@@ -110,7 +110,6 @@
     var intersectionObserver = new IntersectionObserver(onGetVisible, intersectionObserverOptions)
 
     var mutationObserver = new MutationObserver(function (mutations) {
-        console.time("mutations")
         var images = getMutationElements(mutations, 'img, picture')
 
         forEach(images, function (image) {
@@ -121,7 +120,6 @@
                 intersectionObserver.observe(image)
             }
         })
-        console.timeEnd("mutations")
     })
 
     mutationObserver.observe(document, mutationObserverOptions)
