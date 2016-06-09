@@ -26,6 +26,10 @@
         iteratable.forEach(fn)
     }
 
+    function findChildren (element, selector) {
+        return toArray(element.querySelectorAll(selector))
+    }
+
     function createAttributeMoveFunction (sourceGetter, sourceAttribute, targetAttribute) {
         return function () {
             forEach(sourceGetter(), function (source) {
@@ -40,7 +44,7 @@
     }
 
     function getPictureSources () {
-        return toArray(this.querySelectorAll('source'))
+        return findChildren(this, 'source')
     }
 
     function getImageHelper (elem) {
@@ -53,7 +57,7 @@
             sourceGetter = getImageSources.bind(elem)
         } else if (elem instanceof HTMLPictureElement) {
             sourceAttribute = 'srcset'
-            sourceGetter = getPictureSources.bind(elem)
+            sourceGetter = findChildren.bind(undefined, elem, 'source')
         } else {
             return
         }
@@ -71,22 +75,20 @@
             var target = item.target,
                 imageHelper = getImageHelper(target)
 
-            imageHelper.restoreSource(target)
+            imageHelper.restoreSource()
             intersectionObserver.unobserve(target)
         })
     }
 
     function getMutationElements(mutations, selector) {
         return mutations.reduce(function (acc, item) {
-            var nodes = toArray(item.addedNodes)
-
-            forEach(nodes, function (node) {
+            forEach(item.addedNodes, function (node) {
                 if (node.matches) {
                     if (node.matches(selector)) {
                         acc.add(node)
+                    } else {
+                        forEach(findChildren(node, selector), acc.add.bind(acc))
                     }
-
-                    forEach(node.querySelectorAll(selector), acc.add.bind(acc))
                 }
             })
 
@@ -103,7 +105,7 @@
             var imageHelper = getImageHelper(image)
 
             if (imageHelper) {
-                imageHelper.storeSource(image)
+                imageHelper.storeSource()
                 intersectionObserver.observe(image)
             }
         })
