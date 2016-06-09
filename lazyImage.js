@@ -33,18 +33,18 @@
     function createAttributeMoveFunction (sourceGetter, sourceAttribute, targetAttribute) {
         return function () {
             forEach(sourceGetter(), function (source) {
-                source.setAttribute(targetAttribute, source.getAttribute(sourceAttribute))
-                source.removeAttribute(sourceAttribute)
+                var sourceValue = source.getAttribute(sourceAttribute)
+
+                if (sourceValue) {
+                    source.setAttribute(targetAttribute, sourceValue)
+                    source.removeAttribute(sourceAttribute)
+                }
             })
         }
     }
 
     function getImageSources () {
         return [this]
-    }
-
-    function getPictureSources () {
-        return findChildren(this, 'source')
     }
 
     function getImageHelper (elem) {
