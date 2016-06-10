@@ -22,14 +22,13 @@
         return arraylike && Array.prototype.slice.call(arraylike) || []
     }
 
-    function forEach (iteratable, fn) {
-        iteratable.forEach(fn)
+    function forEach (iterable, fn) {
+        iterable.forEach(fn)
     }
 
     function findChildren (element, selector) {
         return toArray(element.querySelectorAll(selector))
     }
-
 
     function createAttributeMoveFunction (sourceGetter, sourceAttribute, targetAttribute) {
         return forEach.bind(null, sourceGetter(), function (source) {
@@ -68,7 +67,7 @@
             restoreSource: createAttributeMoveFunction(sourceGetter, backupAttribute, sourceAttribute)
         }
     }
-    
+
     function onGetVisible (items) {
         forEach(items, function (item) {
             var target = item.target,
