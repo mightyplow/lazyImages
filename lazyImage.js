@@ -1,9 +1,8 @@
-(function (window, Object, undefined) {
+(function (window, Object, undefined, ArrayPrototype) {
     var MutationObserver = window['MutationObserver'],
-        IntersectionObserver = window['IntersectionObserver'],
-        Set = window['Set']
+        IntersectionObserver = window['IntersectionObserver']
 
-    if (!(MutationObserver && IntersectionObserver && Set)) {
+    if (!(MutationObserver && IntersectionObserver && ArrayPrototype.includes)) {
         return
     }
 
@@ -19,7 +18,7 @@
     }
 
     function toArray (arraylike) {
-        return arraylike && Array.prototype.slice.call(arraylike) || []
+        return arraylike && ArrayPrototype.slice.call(arraylike) || []
     }
 
     function forEach (iteratable, fn) {
@@ -30,17 +29,16 @@
         return toArray(element.querySelectorAll(selector))
     }
 
-    function createAttributeMoveFunction (sourceGetter, sourceAttribute, targetAttribute) {
-        return function () {
-            forEach(sourceGetter(), function (source) {
-                var sourceValue = source.getAttribute(sourceAttribute)
 
-                if (sourceValue) {
-                    source.setAttribute(targetAttribute, sourceValue)
-                    source.removeAttribute(sourceAttribute)
-                }
-            })
-        }
+    function createAttributeMoveFunction (sourceGetter, sourceAttribute, targetAttribute) {
+        return forEach.bind(undefined, sourceGetter(), function (source) {
+            var sourceValue = source.getAttribute(sourceAttribute)
+
+            if (sourceValue) {
+                source.setAttribute(targetAttribute, sourceValue)
+                source.removeAttribute(sourceAttribute)
+            }
+        })
     }
 
     function getImageSources () {
@@ -80,36 +78,40 @@
         })
     }
 
-    function getMutationElements(mutations, selector) {
-        return mutations.reduce(function (acc, item) {
+    function onMutationElements (mutations, selector, elementCallback) {
+        forEach(mutations, function (item) {
             forEach(item.addedNodes, function (node) {
                 if (node.matches) {
                     if (node.matches(selector)) {
-                        acc.add(node)
+                        elementCallback(node)
                     } else {
-                        forEach(findChildren(node, selector), acc.add.bind(acc))
+                        forEach(findChildren(node, selector), elementCallback)
                     }
                 }
             })
-
-            return acc
-        }, new Set())
+        })
     }
 
     var intersectionObserver = new IntersectionObserver(onGetVisible, intersectionObserverOptions)
 
     var mutationObserver = new MutationObserver(function (mutations) {
-        var images = getMutationElements(mutations, 'img, picture')
+        var processedItems = []
 
-        forEach(images, function (image) {
+        onMutationElements(mutations, 'img, picture', function (image) {
+            if (processedItems.includes(image)) {
+                return
+            }
+
             var imageHelper = getImageHelper(image)
 
             if (imageHelper) {
                 imageHelper.storeSource()
                 intersectionObserver.observe(image)
             }
+
+            processedItems.push(image)
         })
     })
 
     mutationObserver.observe(document, mutationObserverOptions)
-}(window, Object))
+}(window, Object, undefined, Array.prototype))
