@@ -19,15 +19,15 @@
     }
 
     function toArray (arraylike) {
-        return arraylike && Array.prototype.slice.call(arraylike) || []
+        return Array.prototype.slice.call(arraylike || [])
     }
 
     function forEach (iterable, fn) {
         iterable.forEach(fn)
     }
 
-    function findChildren (element, selector) {
-        return toArray(element.querySelectorAll(selector))
+    function findChildren (selector) {
+        return toArray(this.querySelectorAll(selector))
     }
 
     function createAttributeMoveFunction (sourceGetter, sourceAttribute, targetAttribute) {
@@ -55,7 +55,7 @@
             sourceGetter = getImageSources.bind(elem)
         } else if (elem instanceof HTMLPictureElement) {
             sourceAttribute = 'srcset'
-            sourceGetter = findChildren.bind(undefined, elem, 'source')
+            sourceGetter = findChildren.bind(elem, 'source')
         } else {
             return
         }
@@ -85,7 +85,7 @@
                     if (node.matches(selector)) {
                         elementCallback(node)
                     } else {
-                        forEach(findChildren(node, selector), elementCallback)
+                        forEach(findChildren.call(node, selector), elementCallback)
                     }
                 }
             })
