@@ -1,0 +1,2 @@
+#!/bin/sh
+uglifyjs lazyImage.js -m --mangle-props --reserved-file reserved.json -c > lazyImage.min.js
