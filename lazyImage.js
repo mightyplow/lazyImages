@@ -1,8 +1,9 @@
-(function (window, Object, undefined, ArrayPrototype) {
+(function (window, Object) {
     var MutationObserver = window['MutationObserver'],
-        IntersectionObserver = window['IntersectionObserver']
+        IntersectionObserver = window['IntersectionObserver'],
+        Set = window['Set']
 
-    if (!(MutationObserver && IntersectionObserver && ArrayPrototype.includes)) {
+    if (!(MutationObserver && IntersectionObserver && Set)) {
         return
     }
 
@@ -18,7 +19,7 @@
     }
 
     function toArray (arraylike) {
-        return arraylike && ArrayPrototype.slice.call(arraylike) || []
+        return arraylike && Array.prototype.slice.call(arraylike) || []
     }
 
     function forEach (iteratable, fn) {
@@ -31,7 +32,7 @@
 
 
     function createAttributeMoveFunction (sourceGetter, sourceAttribute, targetAttribute) {
-        return forEach.bind(undefined, sourceGetter(), function (source) {
+        return forEach.bind(null, sourceGetter(), function (source) {
             var sourceValue = source.getAttribute(sourceAttribute)
 
             if (sourceValue) {
@@ -95,10 +96,10 @@
     var intersectionObserver = new IntersectionObserver(onGetVisible, intersectionObserverOptions)
 
     var mutationObserver = new MutationObserver(function (mutations) {
-        var processedItems = []
+        var processedItems = new Set()
 
         onMutationElements(mutations, 'img, picture', function (image) {
-            if (processedItems.includes(image)) {
+            if (processedItems.has(image)) {
                 return
             }
 
@@ -109,9 +110,9 @@
                 intersectionObserver.observe(image)
             }
 
-            processedItems.push(image)
+            processedItems.add(image)
         })
     })
 
     mutationObserver.observe(document, mutationObserverOptions)
-}(window, Object, undefined, Array.prototype))
+}(window, Object))
